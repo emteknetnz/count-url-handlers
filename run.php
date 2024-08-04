@@ -6,14 +6,18 @@ $modulecount = [];
 $res = [];
 $modules = [];
 
-$vendors = ['silverstripe', 'cwp', 'symbiote', 'dnadesign'];
+$vendors = ['silverstripe', 'cwp', 'symbiote', 'dnadesign', 'bringyourownideas', 'colymba', 'tractorcow'];
 
 foreach ($vendors as $vendor) {
     $basepath = dirname(dirname(__DIR__)) . "/$vendor";
     $files = shell_exec('find ' . $basepath . ' -name "*.php"');
     foreach (explode("\n", $files) as $file) {
-        if (!$file) continue;
-        if (str_contains($file, '/tests/')) continue;
+        if (!$file) {
+            continue;
+        }
+        if (str_contains($file, '/tests/')) {
+            continue;
+        }
         $contents = file_get_contents($file);
         $starts = [
             '    private static $url_handlers = [',
@@ -31,7 +35,9 @@ foreach ($vendors as $vendor) {
             $start = $starts[$i];
             $end = $ends[$i];
             $s = strpos($contents, $start);
-            if (!$s) continue;
+            if (!$s) {
+                continue;
+            }
             $e = strpos($contents, $end, $s);
             $substr = substr($contents, $s, $e - $s);
             $lines = explode("\n", $substr);
@@ -44,9 +50,9 @@ foreach ($vendors as $vendor) {
             $f = str_replace($basepath, '', $file);
             preg_match('#^/([a-zA-Z\-]+)/#', $f, $matches);
             $module = $matches[1];
-            if ($module == 'graphql') continue;
-            if ($module == 'graphql') continue;
-            if ($module == 'graphql') continue;
+            if (in_array($module, ['graphql', 'graphql-devtools'])) {
+                continue;
+            }
             $res[$f] = $c;
             $modules[$module] ??= 0;
             $modules[$module] += $c;
@@ -56,6 +62,10 @@ foreach ($vendors as $vendor) {
     }
 }
 
-print_r($res);
-print_r($modules);
-echo "Total: $totalcount\n";
+// print_r($res);
+asort($modules);
+$modules = array_reverse($modules);
+foreach ($modules as $name => $count) {
+    echo "$name: $count\n";
+}
+echo "\nTotal: $totalcount\n";
